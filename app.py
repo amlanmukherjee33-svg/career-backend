@@ -9,6 +9,10 @@ client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 app = Flask(__name__)
 CORS(app)
 
+@app.route('/', methods=['GET'])
+def home():
+    return "Server is running", 200
+
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
