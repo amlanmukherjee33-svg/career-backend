@@ -23,19 +23,42 @@ def analyze():
     level = data.get("level", "")
 
     prompt = f"""
-You are a top career coach and resume expert.
+You are a strict ATS resume reviewer.
 
-Analyze this resume for a {level} {role}.
+You MUST follow this exact format.
 
-Give:
-1. Score out of 100
-2. Strengths (bullet points)
-3. Weaknesses (bullet points)
-4. Specific improvements (actionable)
-5. Final hiring verdict
+User:
+Role: {role}
+Level: {level}
 
 Resume:
 {resume}
+
+OUTPUT FORMAT:
+
+### 📊 SCORE:
+Score: X/100
+
+### 💪 STRENGTHS:
+- Point 1
+- Point 2
+
+### ⚠️ WEAKNESSES:
+- Point 1
+- Point 2
+
+### 🚀 IMPROVEMENTS:
+- Action 1
+- Action 2
+
+### 🎯 FINAL VERDICT:
+(Short hiring decision)
+
+RULES:
+- Use ONLY this format
+- Use "-" for bullets
+- Use headings with ###
+- No extra explanation outside sections
 """
 
     try:
@@ -71,14 +94,40 @@ def ask():
     level = data.get("level", "")
 
     prompt = f"""
-You are a helpful career coach.
+You are a strict career coach.
 
-User role: {role}
-User level: {level}
+You MUST follow this exact format. No deviation.
 
-Question: {question}
+User:
+Role: {role}
+Level: {level}
 
-Give a clear, practical, step-by-step answer.
+Question:
+{question}
+
+OUTPUT FORMAT:
+
+### 🔥 MAIN ANSWER:
+(1–2 line summary)
+
+### 📌 STEPS:
+- Step 1: ...
+- Step 2: ...
+- Step 3: ...
+
+### 🎯 KEY INSIGHTS:
+- Insight 1
+- Insight 2
+
+### ⚠️ MISTAKES TO AVOID:
+- Mistake 1
+- Mistake 2
+
+RULES:
+- Use ONLY this format
+- Use bullet points with "-"
+- Use headings starting with ###
+- No extra text outside sections
 """
 
     try:
