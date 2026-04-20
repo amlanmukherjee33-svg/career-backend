@@ -110,6 +110,8 @@ RULES:
 - NO explanation
 - NO markdown
 - Each career MUST be different
+- Select BEST 3 careers only
+- Prefer careers that closely match skills and interests
 """
 
         response = client.chat.completions.create(
