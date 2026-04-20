@@ -1,31 +1,34 @@
 from flask_cors import CORS
 from flask import Flask, request, jsonify
 from openai import OpenAI
-
-# 🔑 Put your API key here
 import os
+import json
+
+# 🔑 API Key
 client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 app = Flask(__name__)
 CORS(app)
 
+
+# ✅ HEALTH CHECK
 @app.route('/', methods=['GET'])
 def home():
     return "Server is running", 200
 
 
+# ✅ RESUME ANALYZER (FIXED)
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    data = request.json
+    try:
+        data = request.json
 
-    resume = data.get("resume", "")
-    role = data.get("role", "")
-    level = data.get("level", "")
+        resume = data.get("resume", "")
+        role = data.get("role", "")
+        level = data.get("level", "")
 
-    prompt = f"""
+        prompt = f"""
 You are a strict ATS resume reviewer.
-
-You MUST follow this exact format.
 
 User:
 Role: {role}
@@ -53,26 +56,13 @@ Score: X/100
 
 ### 🎯 FINAL VERDICT:
 (Short hiring decision)
-
-RULES:
-- Use ONLY this format
-- Use "-" for bullets
-- Use headings with ###
-- No extra explanation outside sections
 """
 
-    try:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {
-                    "role": "system",
-                    "content": "You are a professional resume reviewer. Be clear, structured, and high quality."
-                },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
+                {"role": "system", "content": "You are a professional resume reviewer."},
+                {"role": "user", "content": prompt}
             ],
             temperature=0.7,
             max_tokens=500
@@ -83,70 +73,68 @@ RULES:
         return jsonify({"result": result})
 
     except Exception as e:
-        return jsonify({"result": f"Error: {str(e)}"})
+        return jsonify({"error": str(e)})
 
+
+# ✅ CAREER ENGINE (FINAL FIX)
 @app.route('/ask', methods=['POST'])
 def ask():
-    data = request.json
+    try:
+        data = request.json
 
-    question = data.get("question", "")
-    role = data.get("role", "")
-    level = data.get("level", "")
+        question = data.get("question", "")
+        careers = data.get("careers", [])
 
-    prompt = f"""
-You are a strict career coach.
-
-You MUST follow this exact format. No deviation.
+        prompt = f"""
+Return ONLY a valid JSON ARRAY.
 
 User:
-Role: {role}
-Level: {level}
-
-Question:
 {question}
 
-OUTPUT FORMAT:
+Careers:
+{careers}
 
-### 🔥 MAIN ANSWER:
-(1–2 line summary)
-
-### 📌 STEPS:
-- Step 1: ...
-- Step 2: ...
-- Step 3: ...
-
-### 🎯 KEY INSIGHTS:
-- Insight 1
-- Insight 2
-
-### ⚠️ MISTAKES TO AVOID:
-- Mistake 1
-- Mistake 2
+FORMAT:
+[
+  {{
+    "career": "exact career name from list",
+    "fitScore": number (1-10),
+    "reason": "short personalized reason",
+    "steps": ["step 1", "step 2"],
+    "insights": ["insight 1"]
+  }}
+]
 
 RULES:
-- Use ONLY this format
-- Use bullet points with "-"
-- Use headings starting with ###
-- No extra text outside sections
+- ONLY JSON array
+- NO explanation
+- NO markdown
+- Each career MUST be different
 """
 
-    try:
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
-                {"role": "system", "content": "You are a helpful career mentor."},
+                {"role": "system", "content": "Return ONLY JSON array."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.7,
-            max_tokens=400
+            temperature=0.2
         )
 
-        result = response.choices[0].message.content
+        result = response.choices[0].message.content.strip()
+        print("RAW AI OUTPUT:", result)
 
-        return jsonify({"result": result})
+        import json
+        parsed = json.loads(result)
+
+        return jsonify(parsed)
 
     except Exception as e:
-        return jsonify({"result": f"Error: {str(e)}"})
+        return jsonify({"error": str(e)})
+    
+@app.route('/test')
+def test():
+    return "NEW CODE IS LIVE"
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
