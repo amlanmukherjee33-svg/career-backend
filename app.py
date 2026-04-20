@@ -17,7 +17,13 @@ def home():
     return "Server is running", 200
 
 
-# ✅ RESUME ANALYZER (FIXED)
+# ✅ TEST ROUTE (VERY IMPORTANT)
+@app.route('/test', methods=['GET'])
+def test():
+    return "NEW CODE IS LIVE"
+
+
+# ✅ RESUME ANALYZER
 @app.route('/analyze', methods=['POST'])
 def analyze():
     try:
@@ -76,7 +82,7 @@ Score: X/100
         return jsonify({"error": str(e)})
 
 
-# ✅ CAREER ENGINE (FINAL FIX)
+# ✅ CAREER ENGINE (FINAL)
 @app.route('/ask', methods=['POST'])
 def ask():
     try:
@@ -126,14 +132,22 @@ RULES:
         result = response.choices[0].message.content.strip()
         print("RAW AI OUTPUT:", result)
 
-        import json
-        parsed = json.loads(result)
+        try:
+            parsed = json.loads(result)
 
-        return jsonify(parsed)
+            if not isinstance(parsed, list):
+                raise Exception("Response is not a list")
+
+            return jsonify(parsed)
+
+        except Exception:
+            return jsonify({
+                "error": "Invalid JSON from AI",
+                "raw": result
+            })
 
     except Exception as e:
         return jsonify({"error": str(e)})
-    
 
 
 if __name__ == '__main__':
