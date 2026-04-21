@@ -92,32 +92,47 @@ def ask():
         careers = data.get("careers", [])
 
         prompt = f"""
-Return ONLY a valid JSON ARRAY.
+You are an expert AI career coach.
 
-User:
+User Profile:
 {question}
 
-Careers:
+Available Careers:
 {careers}
+
+Return ONLY a valid JSON array (no explanation, no markdown).
 
 FORMAT:
 [
   {{
     "career": "exact career name from list",
-    "fitScore": number (1-10),
-    "reason": "short personalized reason",
-    "steps": ["step 1", "step 2"],
-    "insights": ["insight 1"]
+    "fitScore": 1-10,
+    "reason": "2-3 line personalized explanation",
+
+    "skillsNeeded": ["skill 1", "skill 2", "skill 3"],
+    "roadmap": [
+      "Step 1: ...",
+      "Step 2: ...",
+      "Step 3: ..."
+    ],
+    "projects": [
+      "Project idea 1",
+      "Project idea 2"
+    ],
+    "salaryRange": "₹5L - ₹20L",
+    "tips": [
+      "Tip 1",
+      "Tip 2"
+    ]
   }}
 ]
 
 RULES:
-- ONLY JSON array
-- NO explanation
-- NO markdown
-- Each career MUST be different
-- Select BEST 3 careers only
-- Prefer careers that closely match skills and interests
+- ONLY JSON
+- NO explanation text outside JSON
+- No empty fields
+- Select BEST 3 careers
+- Be practical and detailed
 """
 
         response = client.chat.completions.create(
@@ -126,7 +141,8 @@ RULES:
                 {"role": "system", "content": "Return ONLY JSON array."},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.2
+            temperature=0.7,
+            max_tokens=1200
         )
 
         result = response.choices[0].message.content.strip()
